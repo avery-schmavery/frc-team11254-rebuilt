@@ -38,7 +38,7 @@ public class RobotContainer {
   public RobotContainer() {
     drive = new TankDrive();
     driver = new XboxController(0);
-    driveWithJoystick = Commands.run(() -> drive.drive(driver));
+    driveWithJoystick = Commands.run(() -> drive.joystickDrive(driver));
 
     // Configure the trigger bindings
     configureBindings();

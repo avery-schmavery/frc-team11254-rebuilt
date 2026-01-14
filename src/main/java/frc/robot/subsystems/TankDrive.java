@@ -60,9 +60,19 @@ public class TankDrive extends SubsystemBase {
   }
 
 
-  public void drive(XboxController driver){
+  public void joystickDrive(XboxController driver){
     tankDrive.arcadeDrive(MathUtil.applyDeadband(driver.getLeftY(), 0.05), MathUtil.applyDeadband(driver.getRightY(), 0.05));
   }
+
+  public void drive(){
+    tankDrive.arcadeDrive(0.5, 0);
+  }
+
+  public void stop(){
+    frontLeft.stopMotor();
+    frontRight.stopMotor();
+  }
+
 
   @Override
   public void periodic() {
