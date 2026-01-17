@@ -1,3 +1,6 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
 package frc.robot.subsystems;
 //Imports(figure it out Einstein)
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -16,14 +19,16 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 
 public class Shooter extends SubsystemBase {
-  //defininine
+  //define this
   private SparkMax motorShooter;
   private SparkMaxConfig motorShooterConfig;
   private SparkClosedLoopController sparkControl;
   private RelativeEncoder encoder;
-  
+  /**builds the motor and defines its limits as well as type (/°W^)
+   * PID is set up here it will modify running speed of the motor
+   * configs designated here
+   */
   public Shooter() {
-    //define motor and its controller and their effects.(/°W^)
     motorShooter = new SparkMax(SHOOTER, MotorType.kBrushless);
     motorShooterConfig = new SparkMaxConfig();
     sparkControl = motorShooter.getClosedLoopController();
@@ -38,16 +43,22 @@ public class Shooter extends SubsystemBase {
 //config
     motorShooter.configure(motorShooterConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
+/**WE NEED TO PUT A STOP TO THIS.(/°@^)
+ * creates the stop command to prevent continuou running
+ */
 public void stop(){
-  // We need to put a stop to this
   motorShooter.stopMotor();
 }
+/**This command is largely empty
+ * placed to prevent an ERROR (/°W^)
+ */
 public void spinShoot(){
-  //largely an empty command just here to prevent an ERROR
   motorShooter.set(.4);
 }
+/**will be pulled from when firing
+ * 
+ */
 public void PIDShoot(double fireSpeed){
-  //here is what casues the shot
   sparkControl.setSetpoint(fireSpeed, ControlType.kVelocity);
 }
   @Override
