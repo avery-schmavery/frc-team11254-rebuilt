@@ -1,9 +1,9 @@
-// Copyright (c) FIRST and other WPILib contributors.
+  // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
-
+// imports (figure it out)
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
 import frc.robot.commands.ExampleCommand;
@@ -17,6 +17,12 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Intake;
 
 
+import com.revrobotics.spark.SparkMax;
+import frc.robot.subsystems.TankDrive;
+import frc.robot.subsystems.Shooter;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.Commands;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -25,6 +31,15 @@ import frc.robot.subsystems.Intake;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+  //define stuff
+  private TankDrive drive;
+  private XboxController driver;
+  private Command driveWithJoystick;
+
+  private Shooter shooter;
+  private XboxController operator;
+  private JoystickButton shootButton;
+  private JoystickButton unstuckButton;
   // The robot's subsystems and commands are defined here...
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final Intake intakeSubsystem = new Intake();
@@ -32,6 +47,7 @@ public class RobotContainer {
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
+    // Setting the Xbox Controller to the driver port
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final Command spinIntake;
   private final Command outake;
@@ -42,7 +58,13 @@ public class RobotContainer {
 
 
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  private Command shootCommand;
+  private Command unstuckinator;
+
+  /** The container for the robot. Contains subsystems, OI devices, and commands. 
+   * here is where speeds are set as well as the controll devices assigned
+   * RIGHT bumper to shoot LEFT bumper to move motor in reverse
+  */
   public RobotContainer() {
     spinIntake = Commands.run(() -> {intakeSubsystem.spinIntake(0.4);}, intakeSubsystem);
     outake = Commands.run(() -> {intakeSubsystem.spinIntake(-0.4);}, intakeSubsystem);
@@ -51,8 +73,21 @@ public class RobotContainer {
     intakeButton = new JoystickButton(operator, XboxController.Button.kA.value);
     outakeButton = new JoystickButton(operator, XboxController.Button.kB.value);
 
+    drive = new TankDrive();
+    // Runs the command continuously to drive with joystick
+    driveWithJoystick = Commands.run(() -> drive.joystickDrive(driver));
+
+    shooter = new Shooter();
+    //fire
+    shootButton = new JoystickButton(operator, XboxController.Button.kRightBumper.value);
+    shootCommand = Commands.runEnd(() -> shooter.PIDShoot(3000), () -> shooter.stop(),  shooter);
+    //if fuel gets stuck use this to reverse motor(left bumper)
+    unstuckButton = new JoystickButton(operator, XboxController.Button.kLeftBumper.value);
+    unstuckinator = Commands.runEnd(() -> shooter.PIDShoot(-500), () -> shooter.stop(), shooter);
     // Configure the trigger bindings
     configureBindings();
+
+    drive.setDefaultCommand(driveWithJoystick);
   }
 
   /**
@@ -65,6 +100,8 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    //Right bumper to shoot left bumper to reverse shooter motor.(/°W^)
+    shootButton.whileTrue(shootCommand);
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
     new Trigger(m_exampleSubsystem::exampleCondition)
         .onTrue(new ExampleCommand(m_exampleSubsystem));
@@ -75,6 +112,8 @@ public class RobotContainer {
     // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
     // cancelling on release.
     m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
+
+
   }
 
   /**
