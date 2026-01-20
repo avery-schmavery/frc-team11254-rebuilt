@@ -33,17 +33,23 @@ public class RobotContainer {
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
-  private final Command spinIntake = Commands.run(() -> {intakeSubsystem.spinIntake(0.4);}, intakeSubsystem);
-  private final Command outake = Commands.run(() -> {intakeSubsystem.spinIntake(-0.4);}, intakeSubsystem);
-  private final XboxController driver = new XboxController(0);
-  private final XboxController operator = new XboxController(1);
-  private final JoystickButton intakeButton = new JoystickButton(operator, XboxController.Button.kA.value);
-  private final JoystickButton outakeButton = new JoystickButton(operator, XboxController.Button.kB.value);
+  private final Command spinIntake;
+  private final Command outake;
+  private final XboxController driver;
+  private final XboxController operator;
+  private final JoystickButton intakeButton;
+  private final JoystickButton outakeButton;
 
 
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    spinIntake = Commands.run(() -> {intakeSubsystem.spinIntake(0.4);}, intakeSubsystem);
+    outake = Commands.run(() -> {intakeSubsystem.spinIntake(-0.4);}, intakeSubsystem);
+    driver = new XboxController(0);
+    operator = new XboxController(1);
+    intakeButton = new JoystickButton(operator, XboxController.Button.kA.value);
+    outakeButton = new JoystickButton(operator, XboxController.Button.kB.value);
 
     // Configure the trigger bindings
     configureBindings();
@@ -62,9 +68,9 @@ public class RobotContainer {
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
     new Trigger(m_exampleSubsystem::exampleCondition)
         .onTrue(new ExampleCommand(m_exampleSubsystem));
-    intakeButton.whileTrue(spinIntake);
+    intakeButton.whileTrue(spinIntake); // a button
 
-    outakeButton.whileTrue(outake);
+    outakeButton.whileTrue(outake); // b button
 
     // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
     // cancelling on release.
