@@ -19,7 +19,6 @@ import frc.robot.subsystems.Intake;
 
 import com.revrobotics.spark.SparkMax;
 import frc.robot.subsystems.TankDrive;
-import frc.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -36,13 +35,12 @@ public class RobotContainer {
   private XboxController driver;
   private Command driveWithJoystick;
 
-  private Shooter shooter;
   private XboxController operator;
   private JoystickButton shootButton;
   private JoystickButton unstuckButton;
   // The robot's subsystems and commands are defined here...
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
-  private final Intake intakeSubsystem = new Intake();
+  private final Intake intakeSubsystem;
   
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -65,28 +63,31 @@ public class RobotContainer {
    * RIGHT bumper to shoot LEFT bumper to move motor in reverse
   */
   public RobotContainer() {
-    spinIntake = Commands.run(() -> {intakeSubsystem.spinIntake(0.4);}, intakeSubsystem);
-    outake = Commands.run(() -> {intakeSubsystem.spinIntake(-0.4);}, intakeSubsystem);
+    intakeSubsystem = new Intake();
+    spinIntake = Commands.runEnd(() -> {intakeSubsystem.spinIntake(-0.4, -0.8);}, ()-> {intakeSubsystem.spinIntake(0,0);}, intakeSubsystem);
+    outake = Commands.runEnd(() -> {intakeSubsystem.spinIntake(0.4, 0.8);}, () -> {intakeSubsystem.spinIntake(0,0);}, intakeSubsystem);
     driver = new XboxController(0);
     operator = new XboxController(1);
     intakeButton = new JoystickButton(operator, XboxController.Button.kA.value);
     outakeButton = new JoystickButton(operator, XboxController.Button.kB.value);
 
     drive = new TankDrive();
+    
     // Runs the command continuously to drive with joystick
-    driveWithJoystick = Commands.run(() -> drive.joystickDrive(driver));
+    driveWithJoystick = Commands.run(() -> drive.joystickDrive(driver), drive);
 
-    shooter = new Shooter();
+   // shooter = new Shooter();
     //fire
-    shootButton = new JoystickButton(operator, XboxController.Button.kRightBumper.value);
-    shootCommand = Commands.runEnd(() -> shooter.PIDShoot(3000), () -> shooter.stop(),  shooter);
+    //shootButton = new JoystickButton(operator, XboxController.Button.kRightBumper.value);
+    //shootCommand = Commands.runEnd(() -> shooter.PIDShoot(3000), () -> shooter.stop(),  shooter);
     //if fuel gets stuck use this to reverse motor(left bumper)
-    unstuckButton = new JoystickButton(operator, XboxController.Button.kLeftBumper.value);
-    unstuckinator = Commands.runEnd(() -> shooter.PIDShoot(-500), () -> shooter.stop(), shooter);
+    // unstuckButton = new JoystickButton(operator, XboxController.Button.kLeftBumper.value);
+    //unstuckinator = Commands.runEnd(() -> shooter.PIDShoot(-500), () -> shooter.stop(), shooter);
     // Configure the trigger bindings
+    drive.setDefaultCommand(driveWithJoystick);
     configureBindings();
 
-    drive.setDefaultCommand(driveWithJoystick);
+
   }
 
   /**
@@ -100,7 +101,7 @@ public class RobotContainer {
    */
   private void configureBindings() {
     //Right bumper to shoot left bumper to reverse shooter motor.(/°W^)
-    shootButton.whileTrue(shootCommand);
+    // shootButton.whileTrue(shootCommand);
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
     new Trigger(m_exampleSubsystem::exampleCondition)
         .onTrue(new ExampleCommand(m_exampleSubsystem));

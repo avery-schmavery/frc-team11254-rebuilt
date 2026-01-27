@@ -22,16 +22,24 @@ import frc.robot.Constants.intakeConstants.*;
 public class Intake extends SubsystemBase {
   private SparkMax intake;
   private SparkMaxConfig intakeConfig;
+  private SparkMax feeder;
+  private SparkMaxConfig feederConfig;
   /** Creates a new Intake. */
   public Intake() { 
     intake = new SparkMax(intakeConstants.INTAKE_ID, MotorType.kBrushed);
     intakeConfig = new SparkMaxConfig();
     intakeConfig.idleMode(IdleMode.kBrake);
     intake.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    feeder = new SparkMax(intakeConstants.FEEDER_ID, MotorType.kBrushed);
+    feederConfig = new SparkMaxConfig();
+    feederConfig.idleMode(IdleMode.kBrake);
+    feeder.configure(feederConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
   }
   /** spins the intake */
-  public void spinIntake(double spinSpeed){
+  public void spinIntake(double spinSpeed, double feederSpeed){
     intake.set(spinSpeed);
+    feeder.set(feederSpeed);
   }
   /** spins the intake with joystick */
   public Command intakeWithJoystick(double speed){
