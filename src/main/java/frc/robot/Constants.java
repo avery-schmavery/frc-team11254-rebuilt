@@ -26,7 +26,7 @@ public final class Constants {
     public static final int SHOOTERINTAKE = 6;
   }
   public static class intakeConstants {
-    public static final int INTAKE_ID = 0;
+    public static final int INTAKE_ID = 5;
     
   }
 }
