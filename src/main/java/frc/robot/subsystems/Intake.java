@@ -14,14 +14,17 @@ import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.robot.Constants.intakeConstants;
+import frc.robot.Constants.shooterConstants;
 import frc.robot.Constants.intakeConstants.*;
 
 import static edu.wpi.first.units.Units.Volts;
@@ -31,21 +34,25 @@ import static frc.robot.Constants.shooterConstants.*;
 
 
 public class Intake extends SubsystemBase {
-  private SparkMax intake;
-  private SparkMaxConfig intakeConfig;
+  private SparkMax shooter;
+  private SparkMaxConfig shooterConfig;
   private SparkMax feeder;
   private SparkMaxConfig feederConfig;
+  private SparkFlex intake;
   private SparkClosedLoopController sparkControl;
   private RelativeEncoder encoder;
   private SysIdRoutine shooterSysID;
+  private SparkFlexConfig intakeConfig;
 
   /** Creates a new Intake. */
   public Intake() { 
-    intake = new SparkMax(intakeConstants.INTAKE_ID, MotorType.kBrushless);
-    feeder = new SparkMax(intakeConstants.FEEDER_ID, MotorType.kBrushed);
+    shooter = new SparkMax(shooterConstants.SHOOTER, MotorType.kBrushless);
+    feeder = new SparkMax(intakeConstants.FEEDER_ID, MotorType.kBrushless);
+    intake = new SparkFlex(9,MotorType.kBrushless );
 
-    intakeConfig = new SparkMaxConfig();
+    shooterConfig = new SparkMaxConfig();
     feederConfig = new SparkMaxConfig();
+    intakeConfig = new SparkFlexConfig();
     
     sparkControl = intake.getClosedLoopController();
     encoder = intake.getEncoder();
@@ -54,18 +61,20 @@ public class Intake extends SubsystemBase {
       .idleMode(IdleMode.kBrake)
       .smartCurrentLimit(60);
     
+    intakeConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(60);
 //PID woot! woot!
-    intakeConfig
+    shooterConfig
       .idleMode(IdleMode.kBrake)
       .smartCurrentLimit(60)
       .closedLoop.positionWrappingEnabled(true)
       .pid(.0005, 0, 0);
     
-    intakeConfig.encoder.velocityConversionFactor(VELOCITY_CONVERT);
+    shooterConfig.encoder.velocityConversionFactor(VELOCITY_CONVERT);
     
 //config
+    shooter.configure(shooterConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    feeder.configure(feederConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     intake.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    feeder.configure(feederConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
     shooterSysID = new SysIdRoutine(
       new SysIdRoutine.Config(
@@ -74,20 +83,21 @@ public class Intake extends SubsystemBase {
         Seconds.of(10)
       ), 
       new SysIdRoutine.Mechanism(
-        (volts) -> intake.setVoltage(volts.in(Volts)), 
+        (volts) -> shooter.setVoltage(volts.in(Volts)), 
         null,
         this));
   }
 
   /** spins the intake */
   public void spinIntake(double spinSpeed, double feederSpeed){
+    shooter.set(spinSpeed);
     intake.set(spinSpeed);
     feeder.set(feederSpeed);
   }
 
   /** spins the intake with joystick */
   public Command intakeWithJoystick(double speed){
-    return Commands.run(() ->  {intake.set(speed);}, this);
+    return Commands.run(() ->  {shooter.set(speed);}, this);
   }
 
   /**WE NEED TO PUT A STOP TO THIS.(/°@^)
@@ -95,6 +105,7 @@ public class Intake extends SubsystemBase {
  */
   public void stop(){
     intake.stopMotor();
+    shooter.stopMotor();
     feeder.stopMotor();
   }
 
@@ -102,15 +113,15 @@ public class Intake extends SubsystemBase {
    * placed to prevent an ERROR (/°W^)
    */
   public void spinShoot(){
-    intake.set(.4);
+    shooter.set(.4);
   }
 
   /**will be pulled from when firing
    * 
    */
   public void PIDShoot(double fireSpeed){
-    feeder.set(.6);
-    intake.set(0.8);
+    feeder.set(-.6);
+    shooter.set(0.8);
     ///sparkControl.setSetpoint(fireSpeed, ControlType.kVelocity);
   }
 
@@ -119,7 +130,7 @@ public class Intake extends SubsystemBase {
   }
 
   public void spinShooter() {
-    intake.set(0.8);
+    shooter.set(0.8);
   }
 
   public void spinFeeder() {
@@ -139,7 +150,7 @@ public class Intake extends SubsystemBase {
   }
 /**gets the voltage applied to the motor*/
   public double getVoltage(){
-    return intake.getAppliedOutput()*intake.getBusVoltage();
+    return shooter.getAppliedOutput()*shooter.getBusVoltage();
   }
 /**stops the shoot motor*/
   public void intakeMotorShooterStop(){
