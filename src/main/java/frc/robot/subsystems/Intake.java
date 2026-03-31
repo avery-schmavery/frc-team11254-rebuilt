@@ -78,9 +78,9 @@ public class Intake extends SubsystemBase {
 
     shooterSysID = new SysIdRoutine(
       new SysIdRoutine.Config(
-        Volts.of(1).per(Second),
-        Volts.of(3),
-        Seconds.of(10)
+        Volts.of(2).per(Second),
+        Volts.of(8),
+        Seconds.of(30)
       ), 
       new SysIdRoutine.Mechanism(
         (volts) -> shooter.setVoltage(volts.in(Volts)), 
@@ -139,10 +139,10 @@ public class Intake extends SubsystemBase {
 
   public Command runSysID(){
     return Commands.sequence(
-      shooterSysID.quasistatic(Direction.kForward).withTimeout(2),
-      shooterSysID.quasistatic(Direction.kReverse).withTimeout(2),
-      shooterSysID.dynamic(Direction.kForward).withTimeout(2),
-      shooterSysID.dynamic(Direction.kReverse).withTimeout(2));
+      shooterSysID.quasistatic(Direction.kForward).withTimeout(5),
+      shooterSysID.quasistatic(Direction.kReverse).withTimeout(5),
+      shooterSysID.dynamic(Direction.kForward).withTimeout(5),
+      shooterSysID.dynamic(Direction.kReverse).withTimeout(5));
   }
 /**return shooter velocity*/
   public double getVelocity(){
